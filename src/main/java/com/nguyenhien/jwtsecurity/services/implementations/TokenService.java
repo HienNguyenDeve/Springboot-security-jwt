@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.stereotype.Service;
 
 import com.nguyenhien.jwtsecurity.services.interfaces.ITokenService;
 
@@ -21,7 +22,10 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
+@Service
 public class TokenService implements ITokenService{
     @Value("${app.security.access-token-secret-key}")
     private String secretKey;
