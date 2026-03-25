@@ -8,6 +8,7 @@ import org.hibernate.annotations.TimeZoneStorageType;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,23 +17,26 @@ import lombok.Setter;
 @MappedSuperclass
 public class MasterEntity extends BaseEntity {
     @TimeZoneStorage(TimeZoneStorageType.NATIVE)
-    @Column(name = "inserted_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
+    @Column(name = "inserted_at", nullable = false, updatable = false, columnDefinition = "DATETIMEOFFSET")
     private ZonedDateTime insertedAt;
 
     @TimeZoneStorage(TimeZoneStorageType.NATIVE)
-    @Column(columnDefinition = "TIMESTAMP")
+    @Column(columnDefinition = "DATETIMEOFFSET")
     private ZonedDateTime updatedAt;
 
     @TimeZoneStorage(TimeZoneStorageType.NATIVE)
-    @Column(columnDefinition = "TIMESTAMP")
+    @Column(columnDefinition = "DATETIMEOFFSET")
     private ZonedDateTime deletedAt;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
 
     @PrePersist
     public void prePersist() {
         this.insertedAt = ZonedDateTime.now();
     }
 
-    @PrePersist
+    @PreUpdate
     public void preUpdate() {
         this.updatedAt = ZonedDateTime.now();
     }
