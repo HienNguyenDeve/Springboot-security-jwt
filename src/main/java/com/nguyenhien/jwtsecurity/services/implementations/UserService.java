@@ -2,6 +2,7 @@ package com.nguyenhien.jwtsecurity.services.implementations;
 
 import java.util.Set;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class UserService implements IUserSevice{
     private final IUserRepository userRepository;
     private final IRoleRepository roleRepository;
     private final IUserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -54,6 +56,7 @@ public class UserService implements IUserSevice{
 
         // Map and save entity
         var user = userMapper.toEntity(userDTO);
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setRoles(roles);
         userRepository.save(user);
 
