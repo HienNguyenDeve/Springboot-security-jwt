@@ -12,7 +12,7 @@ public class NewPasswordValidator implements ConstraintValidator<NewPassword, Ch
         // Check if old password is correct
 
         // Check if new password is equals to old password
-        if (dto.getOldPassword().equals(dto.getNewPassword())) {
+        if (dto.getCurrentPassword().equals(dto.getNewPassword())) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate("New Password must be different from Old Password")
                     .addPropertyNode("newPassword")
@@ -21,7 +21,7 @@ public class NewPasswordValidator implements ConstraintValidator<NewPassword, Ch
         }
 
         // Check if confirm password matches new password
-        if (!dto.getNewPassword().equals(dto.getConfirmNewPassword())) {
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate("Confirm New Password does not match New Password")
                     .addPropertyNode("confirmNewPassword")

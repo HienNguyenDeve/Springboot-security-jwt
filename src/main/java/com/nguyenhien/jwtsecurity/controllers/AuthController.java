@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.nguyenhien.jwtsecurity.dtos.requests.LoginRequestDTO;
 import com.nguyenhien.jwtsecurity.dtos.requests.RegisterRequestDTO;
 import com.nguyenhien.jwtsecurity.services.interfaces.IAuthService;
 import com.nguyenhien.jwtsecurity.services.interfaces.IUserSevice;
@@ -50,6 +51,29 @@ public class AuthController {
     }
 
     // login
+    @PostMapping("/login")
+    @Operation(
+        summary="Authenticate user",
+        description="User authenticate and return JWT",
+        responses={
+            @ApiResponse(
+                responseCode="200",
+                description="Successfully authenticated"
+            ),
+            @ApiResponse(
+                responseCode="401",
+                description="Invalid username or password"
+            )
+        }
+        
+    )
+    public ResponseEntity<?> login (@Valid @RequestBody LoginRequestDTO loginRequestDTO, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
+        }
+        var result = authService.login(loginRequestDTO);
+        return ResponseEntity.ok(result);
+    }
 
     // logout
 

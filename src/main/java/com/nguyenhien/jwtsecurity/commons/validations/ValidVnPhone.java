@@ -15,7 +15,7 @@ import jakarta.validation.Payload;
 @Retention(RetentionPolicy.RUNTIME) // Giữ thông tin annotation ở runtime để validator có thể truy cập
 public @interface ValidVnPhone {
     // Thông báo lỗi mặc định
-    String mesage() default "Invalid Vietnamese phone number format";
+    String message() default "Invalid Vietnamese phone number format";
 
     // Thông số bắt buộc của Hibernate Validator
     Class<?>[] groups() default {};
