@@ -196,8 +196,32 @@ public class AuthService implements IAuthService, UserDetailsService {
     // revoke token
     @Override
     public MessageResponse revokeToken(String token, String reason) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'revokeToken'");
+        // Find token
+        RefreshToken refreshToken = refreshTokenService.findByToken(token).orElse(null);
+        if (refreshToken == null) {
+            return MessageResponse.builder()
+                        .message("Token not found")
+                        .success(false)
+                        .build();
+        }
+
+        // If token is revoked
+        if (refreshToken.isRevoked()) {
+            return MessageResponse
+                        .builder()
+                        .message("Token already was revoked")
+                        .success(false)
+                        .build();
+        }
+
+        // Else revoketoken
+        refreshTokenService.revokeToken(refreshToken, reason);
+
+        // Return message
+        return MessageResponse.builder()
+                        .message("Token successfully revoked")
+                        .success(true)
+                        .build();
     }
 
     // reset password

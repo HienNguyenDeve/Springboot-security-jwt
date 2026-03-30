@@ -11,6 +11,7 @@ import com.nguyenhien.jwtsecurity.dtos.requests.LoginRequestDTO;
 import com.nguyenhien.jwtsecurity.dtos.requests.LogoutRequestDTO;
 import com.nguyenhien.jwtsecurity.dtos.requests.RefreshTokenRequestDTO;
 import com.nguyenhien.jwtsecurity.dtos.requests.RegisterRequestDTO;
+import com.nguyenhien.jwtsecurity.dtos.requests.RevokeTokenRequestDTO;
 import com.nguyenhien.jwtsecurity.dtos.responses.JwtResponse;
 import com.nguyenhien.jwtsecurity.dtos.responses.MessageResponse;
 import com.nguyenhien.jwtsecurity.services.interfaces.IAuthService;
@@ -131,6 +132,29 @@ public class AuthController {
     }
 
     // revoke token
+    @PostMapping("revoke-token")
+    @Operation(
+        summary="Revoke token",
+        description="Revoke refresh token when user logout, or have issue",
+        responses = {
+            @ApiResponse(
+                responseCode="200",
+                description="Successfully revoke refresh token",
+                content=@Content(schema=@Schema(implementation=MessageResponse.class))
+            ),
+            @ApiResponse(
+                responseCode="400",
+                description="Invalid or token notfound"
+            )
+        }
+    )
+    public ResponseEntity<MessageResponse> revokeToken(
+                @RequestBody RevokeTokenRequestDTO revokeTokenRequestDTO,
+                HttpServletRequest httpServletRequest) {
+        var result = authService.revokeToken(revokeTokenRequestDTO.getToken(), 
+                                        revokeTokenRequestDTO.getReason());
+        return ResponseEntity.ok(result);
+    }
 
     // forgot password
 
