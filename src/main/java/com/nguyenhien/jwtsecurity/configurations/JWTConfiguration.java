@@ -7,9 +7,9 @@ import lombok.Data;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "app.jwt")
+@ConfigurationProperties(prefix = "app.security")
 public class JWTConfiguration {
-    private String secret;
-    private long expirationMs;
-    private long refreshExpirationMs;
+    private String secretKey;
+    private long accessTokenExpiration;
+    private long refreshTokenExpiration;
 }

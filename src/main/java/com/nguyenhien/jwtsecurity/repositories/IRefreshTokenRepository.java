@@ -23,6 +23,6 @@ public interface IRefreshTokenRepository extends JpaRepository<RefreshToken, UUI
     int deleteAllExpiredTokens(@Param("now") Instant now);
     
     @Modifying
-    @Query("UPDATE RefreshToken r SET r.isRevoked = true, r.reasonRevoked = 'User logout' WHERE r.user = :user")
-    int revokeAllUserTokens(@Param("user") User user);
+    @Query("UPDATE RefreshToken r SET r.isRevoked = true, r.reasonRevoked = 'User logout' WHERE r.user.id = :userId")
+    int revokeAllUserTokens(@Param("userId") UUID userId);
 }
