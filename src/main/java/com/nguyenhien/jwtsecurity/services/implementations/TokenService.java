@@ -27,10 +27,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class TokenService implements ITokenService{
-    @Value("${app.security.access-token-secret-key}")
+    @Value("${app.security.secretKey}")
     private String secretKey;
 
-    @Value("${app.security.access-token-expired-in-second}")
+    @Value("${app.security.accessTokenExpiration}")
     private Integer expireTime;
 
     @Override
@@ -47,7 +47,7 @@ public class TokenService implements ITokenService{
                                                                        // SecretKey
         Date expiriation = Date.from(expiredAt.atZone(ZoneId.systemDefault()).toInstant()); // Convert LocalDateTime to
                                                                                     // Date
-                // Generate JWT token
+        // Generate JWT token
         return Jwts.builder()
                 .subject(name)
                 .claim("roles", roles)

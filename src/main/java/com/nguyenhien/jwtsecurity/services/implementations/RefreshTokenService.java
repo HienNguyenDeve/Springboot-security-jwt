@@ -53,7 +53,7 @@ public class RefreshTokenService implements IRefreshTokenService{
             RefreshToken refreshToken = RefreshToken.builder()
                     .user(user)
                     .token(newToken)
-                    .expiryDate(Instant.now().plusMillis(jwtConfiguration.getRefreshExpirationMs()))
+                    .expiryDate(Instant.now().plusMillis(jwtConfiguration.getRefreshTokenExpiration()))
                     .isUsed(false)
                     .isRevoked(false)
                     .build();
@@ -78,7 +78,7 @@ public class RefreshTokenService implements IRefreshTokenService{
                 if (!latestToken.isActive()) {
                     latestToken.setUsed(false);
                     latestToken.setRevoked(false);
-                    latestToken.setExpiryDate(Instant.now().plusMillis(jwtConfiguration.getRefreshExpirationMs()));
+                    latestToken.setExpiryDate(Instant.now().plusMillis(jwtConfiguration.getRefreshTokenExpiration()));
                     return refreshTokenRepository.save(latestToken);
                 }
                 return latestToken;
@@ -128,15 +128,15 @@ public class RefreshTokenService implements IRefreshTokenService{
 
     @Override
     @Transactional
-    public void deleteByUser(User user) {
+    public void deleteByUser(UUID userId) {
         // Instead of physical deletion, mark all tokens as revoked
-        int updated = refreshTokenRepository.revokeAllUserTokens(user);
-        log.info("Revoked {} refresh tokens for user: {}", updated, user.getUsername());
+        int updated = refreshTokenRepository.revokeAllUserTokens(userId);
+        // log.info("Revoked {} refresh tokens for user: {}", updated, user.getUsername());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<RefreshToken> findActiveTokenByUser(User user) {
+    public List<RefreshToken> findActiveTokensByUser(User user) {
         return refreshTokenRepository.findByUserAndIsRevokedFalseAndIsUsedFalse(user).stream()
                 .filter(token -> !token.isExpired())
                 .toList();

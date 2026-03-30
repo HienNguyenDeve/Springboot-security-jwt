@@ -31,6 +31,7 @@ import com.nguyenhien.jwtsecurity.dtos.responses.MessageResponse;
 import com.nguyenhien.jwtsecurity.dtos.users.UserBaseDTO;
 import com.nguyenhien.jwtsecurity.entities.RefreshToken;
 import com.nguyenhien.jwtsecurity.entities.User;
+import com.nguyenhien.jwtsecurity.exceptions.TokenRefreshException;
 import com.nguyenhien.jwtsecurity.mappers.IUserMapper;
 import com.nguyenhien.jwtsecurity.repositories.IRoleRepository;
 import com.nguyenhien.jwtsecurity.repositories.IUserRepository;
@@ -99,7 +100,7 @@ public class AuthService implements IAuthService, UserDetailsService {
             } catch (DataIntegrityViolationException ex) {
                 // If we hit a constraint violation, try to find existing token
                 log.warn("Constraint violation creating refresh token, checking for existing tokens");
-                List<RefreshToken> activeTokens = refreshTokenService.findActiveTokenByUser(user);
+                List<RefreshToken> activeTokens = refreshTokenService.findActiveTokensByUser(user);
                 if (activeTokens.isEmpty()) {
                     throw new RuntimeException("Could not create or find valid refresh token");
                 }
@@ -131,15 +132,65 @@ public class AuthService implements IAuthService, UserDetailsService {
     // logout
     @Override
     public MessageResponse logout(LogoutRequestDTO request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'logout'");
+        if (request != null) {
+            refreshTokenService.deleteByUser(request.getUserId());
+        }
+        return MessageResponse
+                .builder()
+                .message("Logout successfully")
+                .success(true)
+                .build();
     }
 
     // refresh token
     @Override
     public JwtResponse refreshToken(RefreshTokenRequestDTO request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'refreshToken'");
+        String requestRefreshToken = request.getRefreshToken();
+        return refreshTokenService.findByToken(requestRefreshToken)
+                .map(refreshTokenService::verifyExpiration)
+                .<JwtResponse>map(refreshToken -> {
+                    User user = refreshToken.getUser();
+                    UserDetailsImpl userDetails = UserDetailsImpl.build(user);
+                    Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                    // Generate new access token
+                    String accessToken = tokenService.generateToken(authentication);
+
+                    // Generate new refresh token with retry mechanism
+                    RefreshToken newRefreshToken;
+                    try {
+                        newRefreshToken = refreshTokenService.createRefreshToken(user);
+                    } catch (DataIntegrityViolationException ex) {
+                        // If we hit a constraint violation, try to find an active token
+                        List<RefreshToken> activeTokens = refreshTokenService.findActiveTokensByUser(user);
+                        if (activeTokens.isEmpty()) {
+                            throw new TokenRefreshException(requestRefreshToken, 
+                                "Could not create new refresh token due to constraint violation");
+                        }
+                        newRefreshToken = activeTokens.get(0);
+                    }
+                    // Mark old token as used and specify which token replaced it
+                    refreshTokenService.useToken(refreshToken, newRefreshToken.getToken());
+
+                    List<String> roles = userDetails.getAuthorities().stream()
+                            .map(GrantedAuthority::getAuthority)
+                            .toList();
+
+                    UserBaseDTO userInfor = UserBaseDTO
+                            .builder()
+                            .id(userDetails.getId())
+                            .username(userDetails.getUsername())
+                            .email(userDetails.getEmail())
+                            .roles(roles)
+                            .build();
+                    
+                    return JwtResponse.builder()
+                            .accessToken(accessToken)
+                            .refreshToken(newRefreshToken.getToken())
+                            .userInfor(userInfor)
+                            .build();
+                })
+                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken, "Refresh token not found in database"));
     }
 
     // revoke token
